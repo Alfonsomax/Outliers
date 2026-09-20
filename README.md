@@ -43,7 +43,7 @@ By using both statistical and time-series-based methods, it reduces false positi
 
 The script expects one or more structured datasets, especially:
 
-- part identifier (`PARTID`)
+- part identifier (`PART_ID`)
 - date (`HISTORYDATE`)
 - quantity (`QTY`)
 - document number (`DOCUMENT`)
@@ -122,7 +122,7 @@ These values are used to evaluate how aggressive the adjustment should be when a
 
 ## How the data is processed
 
-The script groups records by `PARTID` and `HISTORYDATE`, then aggregates values for each date.
+The script groups records by `PART_ID` and `HISTORYDATE`, then aggregates values for each date.
 
 It does the following per material:
 

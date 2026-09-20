@@ -112,7 +112,7 @@ def Normalize_Process(df_group):
     df_group = df_group[~df_group.iloc[:, 0].astype(str).str.contains(r'rows selected', regex=True)]
     df_group[['DOCUMENT', 'POSITION']] = df_group['NOTE'].str.extract(r'([A-Za-z0-9]+)_(\d+)')
     df_group = df_group.drop(columns=['NOTE'])
-    df_group['PARTID'] = df_group['PARTID'].dropna().astype(str).str.strip()
+    df_group['PART_ID'] = df_group['PART_ID'].dropna().astype(str).str.strip()
     df_group['DOCUMENT'] = df_group['DOCUMENT'].astype(str).str.strip()
     df_group['POSITION'] = df_group['POSITION'].dropna()
     df_group['POSITION'] = pd.to_numeric(df_group['POSITION'], errors='coerce')
@@ -307,7 +307,7 @@ def stl_process(group):
 # Activate filter functions
 df_group = Normalize_Process(df_group)
 df_compare = Normalize_compare(df_compare)
-df_compare = df_compare.groupby(['PARTID', 'HISTORYDATE'], as_index=False).agg({
+df_compare = df_compare.groupby(['PART_ID', 'HISTORYDATE'], as_index=False).agg({
     'QTY': 'sum',
     'DOCUMENT': 'first',
     'TIPO_DOCUMENTO': 'first',
@@ -315,7 +315,7 @@ df_compare = df_compare.groupby(['PARTID', 'HISTORYDATE'], as_index=False).agg({
 })
 
 df_sorted = df_compare.sort_values(
-    by=['PARTID', 'HISTORYDATE']
+    by=['PART_ID', 'HISTORYDATE']
 )
 
 
@@ -335,11 +335,11 @@ df_sorted['LOG'] = 0
 
 if DEBUG_MODE_ON:
         print("\n DEBUG ** Z-score analysis")
-df_sorted = df_sorted.groupby('PARTID').apply(z_score_process).reset_index(drop=True)
+df_sorted = df_sorted.groupby('PART_ID').apply(z_score_process).reset_index(drop=True)
 
 if DEBUG_MODE_ON:
         print("\n DEBUG ** STL analysis")
-df_results = df_sorted.groupby('PARTID', group_keys=False).apply(stl_process).reset_index(drop=True)
+df_results = df_sorted.groupby('PART_ID', group_keys=False).apply(stl_process).reset_index(drop=True)
 
 
 if DEBUG_MODE_ON:
@@ -357,7 +357,7 @@ if DEBUG_MODE_ON:
     # ------------------------------------------------------------
     group_sizes = (
         df_results
-        .groupby('PARTID')
+        .groupby('PART_ID')
         .size()
         .reset_index(name='n_obs')
     )
@@ -367,7 +367,7 @@ if DEBUG_MODE_ON:
     # ------------------------------------------------------------
     group_has_outlier = (
         df_results
-        .groupby('PARTID')['ANY_OUTLIER']
+        .groupby('PART_ID')['ANY_OUTLIER']
         .sum()
         .reset_index(name='has_outlier')
     )
@@ -377,7 +377,7 @@ if DEBUG_MODE_ON:
     # ------------------------------------------------------------
     group_summary = (
         group_sizes
-        .merge(group_has_outlier, on='PARTID', how='left')
+        .merge(group_has_outlier, on='PART_ID', how='left')
         .sort_values(by='n_obs', ascending=False)
     )
 
@@ -402,7 +402,7 @@ if DEBUG_MODE_ON:
 ###################
 # Graph1
 ###################
-df_graph1 = df_results[df_results['PARTID'] == '46-2490-1']
+df_graph1 = df_results[df_results['PART_ID'] == '46-2490-1']
 df_graph1['HISTORYDATE'] = pd.to_datetime(df_graph1['HISTORYDATE'], format='%Y-%m-%d')
 df_graph1 = df_graph1.set_index('HISTORYDATE').sort_index()
 
@@ -452,7 +452,7 @@ fig, axs = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
 # Raw
 axs[0].plot(x_dates, df_graph1['QTY'], color='C0')
 axs[0].set_ylabel('Quantity')
-axs[0].set_title(f'PN - {df_graph1["PARTID"].iloc[0]}')
+axs[0].set_title(f'PN - {df_graph1["PART_ID"].iloc[0]}')
 
 # Trend
 axs[1].plot(x_dates, result_non_robust.trend, label='Non-Robust', color='C0')
@@ -493,7 +493,7 @@ plt.savefig(os.path.join(main_path, 'output', 'Graph1_STL.png'))
 ###################
 # Graph2
 ###################
-df_graph2 = df_results[df_results['PARTID'] == 'ABS0370-01']
+df_graph2 = df_results[df_results['PART_ID'] == 'ABS0370-01']
 df_graph2['HISTORYDATE'] = pd.to_datetime(df_graph2['HISTORYDATE'], format='%Y-%m-%d')
 df_graph2 = df_graph2.set_index('HISTORYDATE').sort_index()
 
@@ -543,7 +543,7 @@ fig, axs = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
 # Raw
 axs[0].plot(y_dates, df_graph2['QTY'], color='C0')
 axs[0].set_ylabel('Quantity')
-axs[0].set_title(f'PN - {df_graph2["PARTID"].iloc[0]}')
+axs[0].set_title(f'PN - {df_graph2["PART_ID"].iloc[0]}')
 
 # Trend
 axs[1].plot(y_dates, result_non_robust.trend, label='Non-Robust', color='C0')
@@ -584,7 +584,7 @@ plt.savefig(os.path.join(main_path, 'output', 'Graph2_STL.png'))
 ###################
 # Graph3
 ###################
-df_graph3 = df_results[df_results['PARTID'] == 'MS24665-153']
+df_graph3 = df_results[df_results['PART_ID'] == 'MS24665-153']
 df_graph3['HISTORYDATE'] = pd.to_datetime(df_graph3['HISTORYDATE'], format='%Y-%m-%d')
 df_graph3 = df_graph3.set_index('HISTORYDATE').sort_index()
 
@@ -634,7 +634,7 @@ fig, axs = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
 # Raw
 axs[0].plot(x_dates, df_graph3['QTY'], color='C0')
 axs[0].set_ylabel('Quantity')
-axs[0].set_title(f'PN - {df_graph3["PARTID"].iloc[0]}')
+axs[0].set_title(f'PN - {df_graph3["PART_ID"].iloc[0]}')
 
 # Trend
 axs[1].plot(x_dates, result_non_robust.trend, label='Non-Robust', color='C0')
@@ -674,7 +674,7 @@ plt.savefig(os.path.join(main_path, 'output', 'Graph3_STL.png'))
 ###################
 # Graph4
 ###################
-df_graph4 = df_results[df_results['PARTID'] == 'CAN66028A']
+df_graph4 = df_results[df_results['PART_ID'] == 'CAN66028A']
 df_graph4['HISTORYDATE'] = pd.to_datetime(df_graph4['HISTORYDATE'], format='%Y-%m-%d')
 df_graph4 = df_graph4.set_index('HISTORYDATE').sort_index()
 
@@ -723,7 +723,7 @@ fig, axs = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
 # Raw
 axs[0].plot(x_dates, df_graph4['QTY'], color='C0')
 axs[0].set_ylabel('Quantity')
-axs[0].set_title(f'PN - {df_graph4["PARTID"].iloc[0]}')
+axs[0].set_title(f'PN - {df_graph4["PART_ID"].iloc[0]}')
 
 # Trend
 axs[1].plot(x_dates, result_non_robust.trend, label='Non-Robust', color='C0')
@@ -766,13 +766,13 @@ if DEBUG_MODE_ON:
         print("\n DEBUG ** Final modifications")
 df_results['HISTORYDATE'] = df_results['HISTORYDATE'].dt.strftime('%Y-%m-%d')
 df_graph1['HISTORYDATE'] = df_graph1['HISTORYDATE'].dt.strftime('%Y-%m-%d')
-df_graph1 = df_graph1[df_graph1['PARTID'] != 0]
+df_graph1 = df_graph1[df_graph1['PART_ID'] != 0]
 df_graph2['HISTORYDATE'] = df_graph2['HISTORYDATE'].dt.strftime('%Y-%m-%d')
-df_graph2 = df_graph2[df_graph2['PARTID'] != 0]
+df_graph2 = df_graph2[df_graph2['PART_ID'] != 0]
 df_graph3['HISTORYDATE'] = df_graph3['HISTORYDATE'].dt.strftime('%Y-%m-%d')
-df_graph3 = df_graph3[df_graph3['PARTID'] != 0]
+df_graph3 = df_graph3[df_graph3['PART_ID'] != 0]
 df_graph4['HISTORYDATE'] = df_graph4['HISTORYDATE'].dt.strftime('%Y-%m-%d')
-df_graph4 = df_graph4[df_graph4['PARTID'] != 0]
+df_graph4 = df_graph4[df_graph4['PART_ID'] != 0]
 
 
 if DEBUG_MODE_ON:
